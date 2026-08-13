@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Predicting Content Refresh Opportunities</title>
+<style>
+body{margin:0;background:#f6f7f9;color:#17202a;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+main{max-width:980px;margin:35px auto;padding:0 18px}.card{background:white;border:1px solid #ddd;border-radius:14px;padding:28px;margin:18px 0}
+h1{font-size:38px;line-height:1.15}h2{border-bottom:1px solid #ddd;padding-bottom:8px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}th{background:#f1f3f6}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{border:1px solid #ddd;border-radius:10px;padding:15px}.kpi b{display:block;font-size:25px}
+.note{padding:14px;background:#f1f5ff;border-left:4px solid #315dcc}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:30px}}
+</style></head><body><main>
+
+<section class="card">
+<h1>Predicting Content Refresh Opportunities from Historical Search Performance</h1>
+<p>A FlyRank ML internship capstone focused on prioritizing content for human review.</p>
+<div class="kpis">
+<div class="kpi"><b>0.920</b>Accuracy</div><div class="kpi"><b>0.689</b>F1</div>
+<div class="kpi"><b>0.901</b>ROC-AUC</div><div class="kpi"><b>1.00</b>Precision@20</div>
+</div></section>
+
+<section class="card"><h2>Abstract</h2>
+<p>This study investigates whether historical search performance and engagement signals can identify content with future refresh opportunities. Using the FlyRank ML Internship Warehouse, historical content-level search and engagement features were used to predict whether content would meet a predefined future-click opportunity threshold. A majority-class baseline was compared with a Random Forest classifier using a held-out validation split. The Random Forest achieved 0.9199 accuracy, 0.6890 F1, 0.9014 ROC-AUC, and 0.7659 PR-AUC. The resulting ranking achieved an observed Precision@20 of 1.00 on the validation set and is presented as decision-support evidence rather than a causal claim.</p></section>
+
+<section class="card"><h2>1. Question</h2>
+<h3>Research question</h3><p>Can historical search performance and engagement metrics be used to identify content that should be refreshed?</p>
+<h3>Decision supported</h3><p>This project supports content managers in prioritizing pages for review by ranking content based on observed search performance trends and engagement metrics.</p></section>
+
+<section class="card"><h2>2. Data</h2>
+<p><b>Dataset:</b> FlyRank ML Internship Warehouse.</p>
+<p><b>Table:</b> <code>fact_content_daily_performance</code>.</p>
+<p><b>Analysis window:</b> March 1–31, 2026. March 1–21 was used for historical features and March 22–31 for future outcomes.</p>
+<p>Features included impressions, clicks, average position, pageviews, sessions, users, engaged sessions, total engagement time, and CTR.</p>
+<p>Records without a content identifier were excluded. Engagement fields with no recorded value were treated as zero where appropriate, and missing average-position values were median-imputed.</p>
+<div class="note">No client names, URLs, search queries, credentials, or private identifiers are exposed. Content identifiers are hashed IDs.</div></section>
+
+<section class="card"><h2>3. Methodology</h2>
+<p>Historical observations were aggregated by content identifier to create past-period features. The future target used clicks from March 22–31. The opportunity threshold was the 90th percentile of future clicks; items at or above it received label 1.</p>
+<p>A majority-class <code>DummyClassifier</code> was used as the baseline. A Random Forest classifier with 200 trees, balanced class weights, a fixed random seed, and parallel processing was trained.</p>
+<p>An 80/20 stratified split was used for training and held-out validation. Baseline and Random Forest results were evaluated on the same validation set.</p>
+<p><b>Leakage check:</b> future-period outcomes were not used as model features. Future outcomes were used only for label creation and evaluation.</p></section>
+
+<section class="card"><h2>4. Results vs Baseline</h2>
+<table><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th><th>PR-AUC</th></tr>
+<tr><td>Majority baseline</td><td>0.861</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.500</td><td>0.139</td></tr>
+<tr><td><b>Random Forest</b></td><td><b>0.920</b></td><td><b>0.751</b></td><td><b>0.636</b></td><td><b>0.689</b></td><td><b>0.901</b></td><td><b>0.766</b></td></tr></table>
+<p>The Random Forest outperformed the majority-class baseline across the reported classification metrics.</p>
+<h3>Ranking performance</h3>
+<table><tr><th>Strategy</th><th>Precision@20</th></tr><tr><td>Fixed-seed random selection</td><td>0.100</td></tr><tr><td><b>Random Forest ranking</b></td><td><b>1.000</b></td></tr></table>
+<p>All 20 highest-ranked validation items met the predefined opportunity threshold. This is an observed validation result, not a universal guarantee.</p></section>
+
+<section class="card"><h2>Feature importance</h2>
+<table><tr><th>Feature</th><th>Importance</th></tr>
+<tr><td>past_impressions</td><td>0.3740</td></tr><tr><td>past_avg_position</td><td>0.2008</td></tr>
+<tr><td>past_ctr</td><td>0.1890</td></tr><tr><td>past_clicks</td><td>0.1775</td></tr>
+<tr><td>past_pageviews</td><td>0.0206</td></tr><tr><td>past_sessions</td><td>0.0151</td></tr>
+<tr><td>past_engagement_sec</td><td>0.0110</td></tr><tr><td>past_users</td><td>0.0108</td></tr>
+<tr><td>past_engaged_sessions</td><td>0.0013</td></tr></table>
+<p>These values describe model behavior and observed associations; they do not establish causal effects.</p></section>
+
+<section class="card"><h2>5. Limitations</h2><ul>
+<li>This analysis is observational and based on one March 2026 analysis window.</li>
+<li>The model does not establish causation or explain Google's ranking algorithm.</li>
+<li>Validation performance is based on one held-out split and may differ on other periods or datasets.</li>
+<li>Precision@20 is an observed result for this validation set, not a universal guarantee.</li>
+<li>Recommendations are for decision support and human review, not automated publishing.</li>
+</ul></section>
+
+<section class="card"><h2>6. Ranked Recommendations</h2>
+<p>The Random Forest ranking prioritizes content for human review. Suggested review actions are based on observable historical signals.</p>
+<table><tr><th>Priority</th><th>Review action</th><th>Signal</th></tr>
+<tr><td>1</td><td>Review titles and metadata</td><td>High visibility with comparatively low CTR</td></tr>
+<tr><td>2</td><td>Review content relevance and gaps</td><td>Weaker average position</td></tr>
+<tr><td>3</td><td>Review visibility and targeting</td><td>No historical clicks</td></tr>
+<tr><td>4</td><td>Review click-through opportunity</td><td>Low CTR</td></tr>
+<tr><td>5</td><td>Monitor and review</td><td>Model-ranked opportunity</td></tr></table>
+<p>These actions should be reviewed by a human before implementation.</p></section>
+
+<section class="card"><h2>7. Artifacts & Reproducibility</h2>
+<ul><li>Model-versus-baseline performance chart</li><li>Random Forest confusion matrix</li><li>Feature-importance chart</li><li>Top-20 ranked opportunity table</li><li>Precision@20 comparison</li><li>Ranked recommendations CSV</li></ul>
+<p>The accompanying notebook contains data preparation, feature construction, label creation, model training, validation, ranking, and artifact generation.</p>
+<p><b>Repository:</b> Add your final GitHub repository URL before publishing.</p></section>
+
+<section class="card"><h2>Acknowledgments & Data Credit</h2><p>Built on the FlyRank ML Internship dataset.</p></section>
+
+</main></body></html>
